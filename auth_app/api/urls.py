@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegistrationView, HelloWorldView, CookieTokenObtainPairView
+from .views import RegistrationView, HelloWorldView, CookieTokenObtainPairView, CookieTokenRefreshView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('registration/', RegistrationView.as_view(), name='registration'),
     path('token/', CookieTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), 
+    path('token/refresh/', CookieTokenRefreshView.as_view(), name='token_refresh'), 
 
-    path('hello/',  HelloWorldView.as_view(), name='hello')
+    path('hello/', HelloWorldView.as_view(), name='hello')
 ]
