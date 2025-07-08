@@ -3,7 +3,14 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .serializers import RegistrationSerializer
+from .serializers import RegistrationSerializer, CustomTokenObtainPairSerializer
+
+class HelloWorldView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({'message': 'Hello World!'})
+
 
 class RegistrationView(APIView):
     permission_classes = [AllowAny]
@@ -23,21 +30,22 @@ class RegistrationView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-class HelloWorldView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        return Response({'message': 'Hello World!'})
     
 class CookieTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        refresh = response.data.get("refresh")
-        access = response.data.get("access")
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        refresh = serializer.validated_data["refresh"]
+        access = serializer.validated_data["access"]
+
+        response = Response({"message": "Login succesful"})
 
         response.set_cookie(
             key="access_token",
-            value=access,
+            value=str(access),
             httponly=True,
             secure=True,
             samesite="Lax"
@@ -45,13 +53,12 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
         response.set_cookie(
             key="refresh_token",
-            value=refresh,
+            value=str(refresh),
             httponly=True,
             secure=True,
             samesite="Lax"
         )
 
-        response.data = {"message": "Login succesful!"}
         return response
     
 class CookieTokenRefreshView(TokenRefreshView):
